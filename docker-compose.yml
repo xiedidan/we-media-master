@@ -1,0 +1,15 @@
+version: '3.8'
+
+services:
+  searxng:
+    image: searxng/searxng:latest
+    container_name: searxng-we-media
+    restart: unless-stopped
+    network_mode: host
+    volumes:
+      - ./searxng:/etc/searxng
+    environment:
+      - HTTP_PROXY=http://127.0.0.1:6478
+      - HTTPS_PROXY=http://127.0.0.1:6478
+      - http_proxy=http://127.0.0.1:6478
+      - https_proxy=http://127.0.0.1:6478

@@ -14,7 +14,7 @@
 - **前端**: Streamlit (快速原型开发，交互友好)
 - **后端**: Python + FastAPI
 - **模型**: Ollama (支持本地部署)
-- **搜索**: SearXNG (自托管，免费)
+- **搜索**: SearXNG (自托管，免费，docker-compose管理)
 
 ### 2.2 开发模式
 - **虚拟环境**: venv (Python虚拟环境管理)
