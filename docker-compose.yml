@@ -5,11 +5,10 @@ services:
     image: searxng/searxng:latest
     container_name: searxng-we-media
     restart: unless-stopped
-    network_mode: host
-    volumes:
-      - ./searxng:/etc/searxng
+    ports:
+      - "18080:8080"
     environment:
-      - HTTP_PROXY=http://127.0.0.1:6478
-      - HTTPS_PROXY=http://127.0.0.1:6478
-      - http_proxy=http://127.0.0.1:6478
-      - https_proxy=http://127.0.0.1:6478
+      - HTTP_PROXY=http://192.168.5.112:6478
+      - HTTPS_PROXY=http://192.168.5.112:6478
+      - http_proxy=http://192.168.5.112:6478
+      - https_proxy=http://192.168.5.112:6478

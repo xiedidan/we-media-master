@@ -17,13 +17,14 @@ def search(query: str, num_results: int = 5) -> List[Dict[str, str]]:
     searxng_config = config.get("searxng", {})
     base_url = searxng_config.get("base_url", "http://localhost:8080")
     timeout = searxng_config.get("timeout", 30)
+    engines = searxng_config.get("engines", "bing")
 
     url = f"{base_url}/search"
     params = {
         "q": query,
         "format": "json",
         "pageno": 1,
-        "engines": "bing,brave,google,duckduckgo",
+        "engines": engines,
     }
 
     try:
