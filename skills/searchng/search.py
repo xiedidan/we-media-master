@@ -23,6 +23,7 @@ def search(query: str, num_results: int = 5) -> List[Dict[str, str]]:
         "q": query,
         "format": "json",
         "pageno": 1,
+        "engines": "bing,brave",
     }
 
     try:
