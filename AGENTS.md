@@ -16,7 +16,14 @@
 - **模型**: Ollama (支持本地部署)
 - **搜索**: SearXNG (自托管，免费，docker-compose管理)
 
-### 2.2 开发模式
+### 2.2 SearXNG配置
+- **端口**: 18080
+- **代理**: http://192.168.5.112:6478
+- **引擎**: Bing (其他引擎：Google/DuckDuckGo/Brave可能被封禁)
+- **启动**: `docker-compose up -d`
+- **配置文件**: config/settings.yml
+
+### 2.3 开发模式
 - **虚拟环境**: venv (Python虚拟环境管理)
 - **数据库**: SQLite (轻量级，本地存储)
 - **迭代方式**: 快速原型 → Eval评估 → 迭代优化
