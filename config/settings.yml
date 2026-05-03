@@ -5,7 +5,7 @@ searxng:
   base_url: "http://localhost:18080"
   timeout: 30
   default_results: 5
-  engines: "bing,brave,google,duckduckgo"
+  engines: "bing"
 
 ## LLM配置 (开发阶段使用远程API)
 llm:
