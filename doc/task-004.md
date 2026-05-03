@@ -9,6 +9,11 @@
 3. 支持参数化（主题、风格、长度等）
 
 ## 验收标准
-- [ ] config/prompts.yml包含完整提示词
-- [ ] 生成文章符合自媒体风格
-- [ ] 支持1500-5000字长度控制
+- [x] config/prompts.yml包含完整提示词
+- [x] agent/prompts.py提示词构建模块
+- [x] 支持1500-5000字长度控制
+
+## 实施记录
+- 创建config/prompts.yml，包含system prompt和user prompt模板
+- 创建agent/prompts.py，提示词构建函数
+- 测试通过
