@@ -1,29 +1,20 @@
-# 项目配置
-
-## SearXNG配置
-searxng:
-  base_url: "http://localhost:18080"
-  timeout: 30
-  default_results: 5
-  engines: "bing"
-
-## LLM配置 (开发阶段使用远程API)
-llm:
-  provider: "openai"  # openai, anthropic, ollama
-  model: "minimax-minimax-max2.1-free"
-  temperature: 0.7
-  max_tokens: 4000
-
-## Agent配置
 agent:
   max_iterations: 10
   verbose: true
-
-## 数据库配置
-database:
-  path: "data/we_media.db"
-
-## 应用配置
 app:
-  title: "自媒体文章创作大师"
   debug: true
+  title: 自媒体文章创作大师
+database:
+  path: data/we_media.db
+llm:
+  api_key: sk-2debece09d8d42a2998364191702b55c
+  base_url: https://api.deepseek.com/v1
+  max_tokens: 4000
+  model: deepseek-v4-pro
+  provider: deepseek
+  temperature: 0.7
+searxng:
+  base_url: http://localhost:18080
+  default_results: 5
+  engines: bing
+  timeout: 30

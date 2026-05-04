@@ -50,7 +50,7 @@ python eval/test_v1.py
 
 #### 4. 启动UI
 ```bash
-streamlit run app/app.py --server.port 8511
+streamlit run app/app.py --server.port 9081
 ```
 
 ## 目录结构
