@@ -26,7 +26,7 @@ user_prompt_template: |
   主题：{topic}
   关键词：{keywords}
   文章类型：{article_type}
-  文风：{style}
+  文风：{style}{central_idea}
 
   参考素材：
   {materials}
@@ -36,6 +36,7 @@ user_prompt_template: |
   - 内容有深度，有案例支撑
   - 结尾有总结和行动号召（知识普及/经验分享类）
   - 结尾有感悟升华（感悟体会/想法迸发类）
+  - 始终围绕中心思想展开论述
 
   请直接输出Markdown格式的文章，不要有其他说明。
 

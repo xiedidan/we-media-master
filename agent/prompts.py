@@ -26,6 +26,7 @@ def build_user_prompt(
     length: str = "medium",
     style: str = "professional",
     article_type: str = "知识普及",
+    central_idea: str = "",
 ) -> str:
     prompts = load_prompts()
     template = prompts.get("user_prompt_template", "")
@@ -38,6 +39,8 @@ def build_user_prompt(
         for m in materials
     ])
     
+    central_idea_text = f"\n中心思想：{central_idea}" if central_idea else ""
+    
     return template.format(
         topic=topic,
         keywords=", ".join(keywords),
@@ -45,6 +48,7 @@ def build_user_prompt(
         length=target_length,
         style=style,
         article_type=article_type,
+        central_idea=central_idea_text,
     )
 
 
