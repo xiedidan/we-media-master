@@ -1,0 +1,35 @@
+{
+  "timestamp": "20260506_121300",
+  "topic": "人生最长情的是陪伴",
+  "keywords": [],
+  "article_type": "感悟体会",
+  "style": "friendly",
+  "length": "medium",
+  "article_length": 4231,
+  "error": null,
+  "provider": "deepseek",
+  "model": "deepseek-v4-pro",
+  "thinking": true,
+  "materials": [
+    {
+      "title": "追觅 CEO 连续发文炮轰小红书是非常非常烂的平台，称其 ...",
+      "url": "https://www.zhihu.com/question/2032052994884071504"
+    },
+    {
+      "title": "小红书如何发起投票 - 百度经验",
+      "url": "https://jingyan.baidu.com/article/09ea3edea25b0f81afde397f.html"
+    },
+    {
+      "title": "小红书被曝有大量儿童软色情内容，给未成年用户推送色情擦 ...",
+      "url": "https://www.zhihu.com/question/2016523678213435944"
+    },
+    {
+      "title": "小红书手机网页版入口 - 百度经验",
+      "url": "https://jingyan.baidu.com/article/8ebacdf04027dc08f65cd5f8.html"
+    },
+    {
+      "title": "新手进抖音、小红书、B站这三个平台哪个好？ - 知乎",
+      "url": "https://www.zhihu.com/question/516658410"
+    }
+  ]
+}
