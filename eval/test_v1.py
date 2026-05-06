@@ -5,6 +5,7 @@ import os
 sys.path.insert(0, ".")
 from skills.searchng.search import search as search_skill
 from agent.prompts import get_system_prompt, build_user_prompt
+from services.llm import call_llm, judge_article, JUDGE_SYSTEM_PROMPT, build_judge_prompt
 
 
 def test_search():
@@ -35,6 +36,27 @@ def test_prompts():
     assert len(system_p) > 0, "System prompt should exist"
     assert len(user_p) > 0, "User prompt should exist"
     print("✓ Prompts OK\n")
+
+
+def test_article_type():
+    print("=== Test 2.1: Article Type ===")
+    
+    materials = [
+        {"title": "AI发展", "content": "人工智能快速发展"},
+    ]
+    
+    types = ["知识普及", "经验分享", "感悟体会", "想法迸发"]
+    for at in types:
+        user_p = build_user_prompt(
+            topic="人工智能",
+            keywords=["AI"],
+            materials=materials,
+            article_type=at,
+        )
+        assert at in user_p, f"Article type {at} should be in prompt"
+        print(f"  - {at}: OK")
+    
+    print("✓ Article Type OK\n")
 
 
 def test_workflow():
@@ -87,6 +109,91 @@ AI改变世界
     print("✓ Markdown Format OK\n")
 
 
+def test_judge():
+    print("=== Test 5: LLM Judge ===")
+    
+    api_key = os.environ.get("DEEPSEEK_API_KEY", "")
+    if not api_key:
+        import yaml
+        with open("config/settings.yml", "r") as f:
+            config = yaml.safe_load(f)
+        api_key = config.get("llm", {}).get("api_key", "")
+    
+    if not api_key:
+        print("⚠ Skipped: No API Key configured\n")
+        return
+    
+    test_article = """# 人工智能
+
+## 一、AI的发展历程
+
+人工智能技术近年来快速发展，从GPT到Claude，各个大模型不断突破技术边界。
+
+## 二、AI在各行业的应用
+
+AI已经应用到医疗、金融、教育等领域。例如，某医院使用AI辅助诊断，准确率大幅提升。
+
+## 三、未来展望
+
+AI将继续改变我们的生活和工作方式。
+
+### 总结
+
+AI是未来发展的重要方向。
+
+---
+**参考资料**
+- [AI发展现状](https://example.com)
+- [大模型技术](https://example2.com)
+"""
+
+    materials = [
+        {"title": "AI发展", "content": "人工智能快速发展"},
+    ]
+    user_p = build_user_prompt(
+        topic="人工智能",
+        keywords=["AI", "发展"],
+        materials=materials,
+        length="medium",
+        style="professional",
+        article_type="知识普及",
+    )
+    
+    print("Calling LLM to generate article...")
+    article = call_llm(user_p, "你是一位专业自媒体作家，请直接输出Markdown格式文章，只输出文章内容不要其他。", api_key)
+    
+    if article.startswith("错误："):
+        print(f"⚠ Article generation failed: {article}\n")
+        return
+    
+    print(f"Generated article length: {len(article)}")
+    
+    print("Calling LLM to judge article...")
+    result = judge_article(
+        topic="人工智能",
+        keywords=["AI", "发展"],
+        article=article,
+        article_type="知识普及",
+        style="professional",
+        target_length=3000,
+        api_key=api_key,
+    )
+    
+    if "error" in result:
+        print(f"⚠ Judge failed: {result.get('error')}")
+        print(f"Raw: {result.get('raw_result', '')[:200]}...\n")
+        return
+    
+    print(f"总评: {result.get('总分', 0)}分")
+    for dim, data in result.items():
+        if dim == "总分":
+            continue
+        if isinstance(data, dict):
+            print(f"  - {dim}: {data.get('得分', 0)}分 - {data.get('评语', '')}")
+    
+    print("✓ Judge OK\n")
+
+
 def main():
     print("=" * 50)
     print("MVP Integration Tests v1.0")
@@ -95,8 +202,10 @@ def main():
     try:
         test_search()
         test_prompts()
+        test_article_type()
         test_workflow()
         test_markdown_format()
+        test_judge()
         
         print("=" * 50)
         print("ALL TESTS PASSED ✓")

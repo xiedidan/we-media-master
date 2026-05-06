@@ -8,11 +8,23 @@ database:
   path: data/we_media.db
 llm:
   api_key: sk-2debece09d8d42a2998364191702b55c
-  base_url: https://api.deepseek.com/v1
+  base_url: https://api.deepseek.com
   max_tokens: 4000
   model: deepseek-v4-pro
+  models:
+  - label: DeepSeek V4 Flash
+    name: deepseek-v4-flash
+    provider: deepseek
+  - label: DeepSeek V4 Pro
+    name: deepseek-v4-pro
+    provider: deepseek
+  - base_url: https://api.openai.com/v1
+    label: OpenAI GPT-3.5
+    name: gpt-3.5-turbo
+    provider: openai
   provider: deepseek
   temperature: 0.7
+  thinking: true
 searxng:
   base_url: http://localhost:18080
   default_results: 5

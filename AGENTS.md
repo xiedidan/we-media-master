@@ -13,7 +13,6 @@
 - **Agent框架**: LangGraph (多模型支持，可扩展性强)
 - **前端**: Streamlit (快速原型开发，交互友好)
 - **后端**: Python + FastAPI
-- **模型**: Ollama (支持本地部署)
 - **搜索**: SearXNG (自托管，免费，docker-compose管理)
 
 ### 2.2 SearXNG配置

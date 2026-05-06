@@ -25,6 +25,7 @@ def build_user_prompt(
     materials: List[dict],
     length: str = "medium",
     style: str = "professional",
+    article_type: str = "知识普及",
 ) -> str:
     prompts = load_prompts()
     template = prompts.get("user_prompt_template", "")
@@ -43,6 +44,7 @@ def build_user_prompt(
         materials=materials_text,
         length=target_length,
         style=style,
+        article_type=article_type,
     )
 
 
