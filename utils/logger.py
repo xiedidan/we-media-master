@@ -27,6 +27,8 @@ def save_execution_log(
     thinking: bool = None,
     materials: Optional[List[Dict]] = None,
     llm_calls: Optional[List[Dict]] = None,
+    user_rating: int = 0,
+    user_feedback: str = "",
 ) -> str:
     ensure_log_dir()
     
@@ -71,6 +73,11 @@ def save_execution_log(
     if score:
         log_data["score"] = score
     
+    if user_rating:
+        log_data["user_rating"] = user_rating
+    if user_feedback:
+        log_data["user_feedback"] = user_feedback
+    
     with open(filename, "w", encoding="utf-8") as f:
         json.dump(log_data, f, ensure_ascii=False, indent=2)
     
@@ -109,3 +116,26 @@ def list_logs(limit: int = 10) -> List[Dict]:
 def get_latest_log() -> Optional[Dict]:
     logs = list_logs(1)
     return logs[0] if logs else None
+
+
+def update_log_rating(timestamp: str, user_rating: int, user_feedback: str = "") -> bool:
+    ensure_log_dir()
+    
+    for f in os.listdir(LOG_DIR):
+        if f.endswith(".json") and timestamp in f:
+            try:
+                with open(f"{LOG_DIR}/{f}", "r", encoding="utf-8") as fp:
+                    log_data = json.load(fp)
+                
+                log_data["user_rating"] = user_rating
+                if user_feedback:
+                    log_data["user_feedback"] = user_feedback
+                
+                with open(f"{LOG_DIR}/{f}", "w", encoding="utf-8") as fp:
+                    json.dump(log_data, fp, ensure_ascii=False, indent=2)
+                
+                return True
+            except:
+                pass
+    
+    return False

@@ -139,6 +139,18 @@ def main():
         
         thinking_status = model_config.get("thinking", False)
         st.caption(f"当前: {selected_provider}/{selected_model} {'(深度思考)' if thinking_status else ''}")
+        
+        st.divider()
+        
+        logs = list_logs(100)
+        if logs:
+            rated_logs = [l for l in logs if l.get("user_rating", 0) > 0]
+            if rated_logs:
+                total_rating = sum(l.get("user_rating", 0) for l in rated_logs)
+                avg_rating = total_rating / len(rated_logs)
+                st.subheader("📊 评分统计")
+                st.metric("平均评分", f"{avg_rating:.1f}⭐")
+                st.caption(f"共 {len(rated_logs)} 条评分")
     
     col1, col2 = st.columns([1, 2])
     
@@ -327,6 +339,53 @@ def main():
             
             st.text_area("文章内容", value=article, height=600)
             
+            with st.expander("✏️ 修改文章"):
+                edited_article = st.text_area(
+                    "在这里修改文章内容：",
+                    value=article,
+                    height=400,
+                )
+                
+                col_edit1, col_edit2 = st.columns(2)
+                with col_edit1:
+                    if st.button("应用修改", type="primary"):
+                        article = edited_article
+                        st.success("修改已应用！")
+                        st.rerun()
+                with col_edit2:
+                    st.info("直接编辑上方文本即可修改文章")
+            
+            with st.expander("🤖 AI重写段落"):
+                rewrite_target = st.text_area(
+                    "输入要重写的段落：",
+                    height=150,
+                )
+                rewrite_instruction = st.text_input(
+                    "修改要求（如：'让语言更口语化'、'增加情感表达'）",
+                )
+                
+                if st.button("重写段落"):
+                    if not rewrite_target or not rewrite_instruction:
+                        st.warning("请输入要重写的段落和修改要求")
+                    else:
+                        with st.spinner("AI正在重写..."):
+                            rewrite_prompt = f"""请根据以下要求重写这个段落：
+要求：{rewrite_instruction}
+
+原文段落：
+{rewrite_target}
+
+请直接输出重写后的段落，不要有其他说明。"""
+                            
+                            rewritten = call_llm(rewrite_prompt, DEFAULT_SYSTEM_PROMPT, api_key)
+                            st.success("重写完成！")
+                            st.text_area("重写结果", value=rewritten, height=150)
+                            
+                            if st.button("采纳并替换"):
+                                article = article.replace(rewrite_target, rewritten)
+                                st.success("已替换！")
+                                st.rerun()
+            
             st.download_button(
                 "下载Markdown",
                 data=article,
@@ -340,11 +399,31 @@ def main():
         st.subheader("📋 执行历史")
         logs = list_logs(5)
         if logs:
-            for log in logs:
+            for i, log in enumerate(logs):
                 with st.expander(f"{log.get('topic', 'unknown')} - {log.get('timestamp', '')}"):
                     st.caption(f"类型: {log.get('article_type')} | 文风: {log.get('style')} | 字数: {log.get('article_length', 0)}")
-                    if log.get('score'):
-                        st.caption(f"评分: {log['score'].get('总分', 'N/A')}分")
+                    
+                    existing_score = log.get('user_rating', 0)
+                    score_label = ["⭐", "⭐⭐", "⭐⭐⭐", "⭐⭐⭐⭐", "⭐⭐⭐⭐⭐"]
+                    selected_score = st.select_slider(
+                        "评分",
+                        options=[0, 1, 2, 3, 4, 5],
+                        value=existing_score,
+                        format_func=lambda x: "未评分" if x == 0 else score_label[x-1],
+                        key=f"rating_{log.get('timestamp')}_{i}",
+                    )
+                    
+                    if selected_score != existing_score:
+                        log['user_rating'] = selected_score
+                    
+                    feedback = st.text_area(
+                        "反馈意见（可选）",
+                        value=log.get('user_feedback', ''),
+                        height=60,
+                        key=f"feedback_{log.get('timestamp')}_{i}",
+                    )
+                    if feedback != log.get('user_feedback', ''):
+                        log['user_feedback'] = feedback
         else:
             st.caption("暂无执行记录")
 
