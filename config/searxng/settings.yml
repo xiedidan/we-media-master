@@ -1,0 +1,12 @@
+server:
+  secret_key: "test"
+  bind_address: "0.0.0.0"
+
+outgoing:
+  request_timeout: 15.0
+  max_request_timeout: 30.0
+
+search:
+  safe_search: 0
+  formats:
+    - html
