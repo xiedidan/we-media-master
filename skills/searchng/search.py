@@ -1,202 +1,145 @@
+"""
+SearXNG搜索模块
+使用本地部署的SearXNG实例进行搜索
+"""
 import requests
-from typing import List, Dict, Optional
+from typing import List, Dict
 import yaml
+from bs4 import BeautifulSoup
 
 
 def load_config() -> dict:
+    """加载配置文件"""
     config_path = "config/settings.yml"
     try:
-        with open(config_path, "r") as f:
+        with open(config_path, "r", encoding="utf-8") as f:
             return yaml.safe_load(f)
     except FileNotFoundError:
-        return {"searxng": {"base_url": "http://localhost:8080", "timeout": 30, "default_results": 5}}
-
-
-def search_with_proxy(query: str, num_results: int = 5) -> List[Dict[str, str]]:
-    import httpx
-    
-    query = query.replace(" ", "+")
-    
-    headers = {
-        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
-        "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
-        "Accept-Language": "en-US,en;q=0.5",
-    }
-    
-    try:
-        client = httpx.Client(proxy="http://127.0.0.1:6478", timeout=20.0, follow_redirects=True, trust_env=False)
-        
-        search_queries = [
-            f'"{query}"',
-            query,
-        ]
-        
-        for search_query in search_queries:
-            url = f"https://www.google.com/search?q={search_query}&num={num_results}"
-            
-            try:
-                response = client.get(url, headers=headers)
-                
-                if response.status_code == 200:
-                    from bs4 import BeautifulSoup
-                    soup = BeautifulSoup(response.text, "html.parser")
-                    
-                    results = []
-                    for div in soup.select("div.g"):
-                        title_elem = div.select_one("h3")
-                        if title_elem:
-                            title = title_elem.get_text(strip=True)
-                            link_elem = div.select_one("a")
-                            link = link_elem.get("href", "") if link_elem else ""
-                            
-                            snippet_elem = div.select_one("div.VwiC3b")
-                            content = snippet_elem.get_text(strip=True) if snippet_elem else ""
-                            
-                            if title and content:
-                                results.append({
-                                    "title": title,
-                                    "url": link,
-                                    "content": content[:500],
-                                })
-                                
-                                if len(results) >= num_results:
-                                    break
-                    
-                    if results:
-                        client.close()
-                        return results
-                        
-            except Exception:
-                continue
-        
-        client.close()
-    except Exception:
-        pass
-    
-    return []
-
-
-def search_ddg_fallback(query: str, num_results: int = 5) -> List[Dict[str, str]]:
-    try:
-        from bs4 import BeautifulSoup
-        
-        proxies = {
-            "http://": "http://127.0.0.1:6478",
-            "https://": "http://127.0.0.1:6478",
+        # 默认配置
+        return {
+            "searxng": {
+                "base_url": "http://localhost:18080",
+                "timeout": 30,
+                "default_results": 5,
+                "engines": ""  # 空字符串表示使用所有启用的引擎
+            }
         }
-        
-        headers = {
-            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36"
-        }
-        
-        url = "https://html.duckduckgo.com/html/"
-        data = {"q": query, "b": ""}
-        
-        response = requests.post(url, data=data, headers=headers, proxies=proxies, timeout=15)
-        
-        if response.status_code == 200:
-            soup = BeautifulSoup(response.text, "html.parser")
-            
-            results = []
-            for result in soup.select("a.result__a"):
-                title = result.get_text(strip=True)
-                link = result.get("href", "")
-                
-                snippet_elem = result.find_next("a", class_="result__snippet")
-                content = snippet_elem.get_text(strip=True) if snippet_elem else ""
-                
-                if title and content:
-                    results.append({
-                        "title": title,
-                        "url": link,
-                        "content": content[:500],
-                    })
-                    
-                    if len(results) >= num_results:
-                        break
-            
-            return results[:num_results]
-    except Exception as e:
-        return []
 
 
 def search(query: str, num_results: int = 5) -> List[Dict[str, str]]:
+    """
+    使用SearXNG搜索
+    
+    Args:
+        query: 搜索关键词
+        num_results: 返回结果数量
+        
+    Returns:
+        搜索结果列表,每个结果包含title、url、content
+        
+    Raises:
+        Exception: 当SearXNG服务不可用时抛出异常
+    """
     config = load_config()
     searxng_config = config.get("searxng", {})
-    base_url = searxng_config.get("base_url", "http://localhost:8080")
+    base_url = searxng_config.get("base_url", "http://localhost:18080")
     timeout = searxng_config.get("timeout", 30)
     engines = searxng_config.get("engines", "bing")
 
     url = f"{base_url}/search"
     
+    # 尝试多种搜索策略
     search_queries = [
-        f'"{query}"',
-        query,
-        f"{query} 新闻",
+        query,  # 原始查询
+        f'"{query}"',  # 精确匹配
+        f"{query} 新闻",  # 新闻相关
     ]
     
     results = []
+    last_error = None
     
     for search_query in search_queries:
         params = {
             "q": search_query,
-            "format": "html",
+            "format": "html",  # 使用HTML格式
             "pageno": 1,
-            "engines": engines,
             "safesearch": 0,
+            "language": "zh-CN",
         }
+        
+        # 只有当engines不为空时才添加engines参数
+        if engines:
+            params["engines"] = engines
 
         try:
             response = requests.get(url, params=params, timeout=timeout)
+            
             if response.status_code == 200:
-                from bs4 import BeautifulSoup
+                # 解析HTML结果
                 soup = BeautifulSoup(response.text, "html.parser")
                 
-                result_items = soup.select("article.result, div.result")
-                
-                for result in result_items:
-                    title_elem = result.select_one("h3 a, a.result__a")
-                    content_elem = result.select_one("p.content, a.result__snippet")
+                # SearXNG的结果在article标签中
+                for article in soup.select("article.result"):
+                    # 标题和链接
+                    title_elem = article.select_one("h3 a")
+                    if not title_elem:
+                        continue
                     
-                    if title_elem:
-                        title = title_elem.get_text(strip=True)
-                        link = title_elem.get("href", "")
-                        content = content_elem.get_text(strip=True)[:500] if content_elem else ""
+                    title = title_elem.get_text(strip=True)
+                    link = title_elem.get("href", "")
+                    
+                    # 内容摘要
+                    content_elem = article.select_one("p.content")
+                    content = content_elem.get_text(strip=True) if content_elem else ""
+                    
+                    if title and content:
+                        results.append({
+                            "title": title,
+                            "url": link,
+                            "content": content[:500],  # 限制内容长度
+                        })
                         
-                        if title and content:
-                            results.append({
-                                "title": title,
-                                "url": link,
-                                "content": content,
-                            })
-                            
-                            if len(results) >= num_results:
-                                break
+                        if len(results) >= num_results:
+                            break
                 
+                # 如果获取到足够结果,直接返回
                 if len(results) >= num_results:
                     break
-                    
-        except Exception:
-            continue
+            else:
+                last_error = f"SearXNG返回状态码: {response.status_code}"
+                
+        except requests.exceptions.Timeout:
+            last_error = f"SearXNG请求超时(超过{timeout}秒)"
+        except requests.exceptions.ConnectionError:
+            last_error = "无法连接到SearXNG服务,请确保docker-compose已启动"
+        except Exception as e:
+            last_error = f"SearXNG搜索出错: {str(e)}"
     
+    # 如果没有获取到任何结果,抛出异常
     if not results:
-        results = search_with_proxy(query, num_results)
-    
-    if not results:
-        results = search_ddg_fallback(query, num_results)
-    
-    if not results:
-        return [{"title": "搜索失败", "url": "", "content": "无法获取搜索结果，请检查网络或SearXNG服务"}]
+        error_msg = f"SearXNG搜索失败: {last_error}\n"
+        error_msg += f"请检查:\n"
+        error_msg += f"1. SearXNG服务是否运行: docker ps | grep searxng\n"
+        error_msg += f"2. 代理是否正常: curl -x http://127.0.0.1:6478 https://www.bing.com\n"
+        error_msg += f"3. SearXNG是否可访问: curl {base_url}\n"
+        raise Exception(error_msg)
     
     return results[:num_results]
 
 
 def search_sync(query: str, num_results: int = 5) -> List[Dict[str, str]]:
+    """同步搜索接口(兼容旧代码)"""
     return search(query, num_results)
 
 
 if __name__ == "__main__":
-    results = search("人工智能", 5)
-    for r in results:
-        print(f"- {r['title']}")
-        print(f"  {r['url']}")
+    # 测试搜索功能
+    try:
+        results = search("人工智能", 5)
+        print(f"搜索成功,获取到{len(results)}条结果:\n")
+        for i, r in enumerate(results, 1):
+            print(f"{i}. {r['title']}")
+            print(f"   URL: {r['url']}")
+            print(f"   摘要: {r['content'][:100]}...\n")
+    except Exception as e:
+        print(f"搜索失败: {e}")

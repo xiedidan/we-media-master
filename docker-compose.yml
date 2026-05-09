@@ -5,10 +5,16 @@ services:
     image: searxng/searxng:latest
     container_name: searxng-we-media
     restart: unless-stopped
-    network_mode: host
+    ports:
+      - "18080:8080"
+    volumes:
+      - ./config/searxng:/etc/searxng:rw
     environment:
-      - HTTP_PROXY=http://127.0.0.1:6478
-      - HTTPS_PROXY=http://127.0.0.1:6478
-      - http_proxy=http://127.0.0.1:6478
-      - https_proxy=http://127.0.0.1:6478
-      - no_proxy=localhost,127.0.0.1
+      - SEARXNG_SECRET=mysecretkey123
+      - SEARXNG_BASE_URL=http://localhost:18080/
+      - HTTP_PROXY=http://host.docker.internal:6478
+      - HTTPS_PROXY=http://host.docker.internal:6478
+      - http_proxy=http://host.docker.internal:6478
+      - https_proxy=http://host.docker.internal:6478
+    extra_hosts:
+      - "host.docker.internal:host-gateway"

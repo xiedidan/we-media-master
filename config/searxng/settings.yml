@@ -1,12 +1,57 @@
+use_default_settings: true
+
 server:
-  secret_key: "test"
-  bind_address: "0.0.0.0"
+  secret_key: "mysecretkey123"
+  limiter: false
 
 outgoing:
   request_timeout: 15.0
   max_request_timeout: 30.0
+  proxies:
+    http: http://host.docker.internal:6478
+    https: http://host.docker.internal:6478
 
 search:
   safe_search: 0
-  formats:
-    - html
+  default_lang: "zh-CN"
+
+engines:
+  # 启用Bing
+  - name: bing
+    engine: bing
+    disabled: false
+    
+  # 启用Google
+  - name: google
+    engine: google
+    disabled: false
+    
+  # 启用DuckDuckGo
+  - name: duckduckgo
+    engine: duckduckgo
+    disabled: false
+    
+  # 启用Brave
+  - name: brave
+    engine: brave
+    disabled: false
+    
+  # 启用Qwant
+  - name: qwant
+    engine: qwant
+    disabled: false
+    
+  # 启用Startpage
+  - name: startpage
+    engine: startpage
+    disabled: false
+    
+  # 启用Yahoo
+  - name: yahoo
+    engine: yahoo
+    disabled: false
+    
+  # 启用Mojeek
+  - name: mojeek
+    engine: mojeek
+    disabled: false
